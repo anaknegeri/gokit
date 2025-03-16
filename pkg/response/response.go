@@ -3,6 +3,8 @@ package response
 
 import (
 	"reflect"
+	"regexp"
+	"strings"
 
 	"github.com/anaknegeri/gokit/pkg/errors"
 	"github.com/anaknegeri/gokit/pkg/pagination"
@@ -28,7 +30,7 @@ func Success(c *fiber.Ctx, message string, data interface{}, statusCode ...int) 
 		Success: true,
 		Code:    code,
 		Message: message,
-		Data:    data,
+		Data:    toSnakeCaseKeys(data),
 	})
 }
 
@@ -44,15 +46,15 @@ func SuccessWithPagination(c *fiber.Ctx, message string, paginationResult interf
 	var meta interface{}
 
 	// Check if it's our PaginationResult type
-	if pr, ok := paginationResult.(pagination.PaginationResult); ok {
+	if pr, ok := paginationResult.(*pagination.PaginationResult); ok {
 		data = pr.Data
 		meta = pr.Meta
 	} else {
 		// Otherwise, assume it's a custom structure with data and meta fields
 		v := reflect.ValueOf(paginationResult)
 		if v.Kind() == reflect.Struct {
-			dataField := v.FieldByName("data")
-			metaField := v.FieldByName("meta")
+			dataField := v.FieldByName("Data")
+			metaField := v.FieldByName("Meta")
 
 			if dataField.IsValid() {
 				data = dataField.Interface()
@@ -79,7 +81,7 @@ func SuccessWithPagination(c *fiber.Ctx, message string, paginationResult interf
 		Success: true,
 		Code:    code,
 		Message: message,
-		Data:    data,
+		Data:    toSnakeCaseKeys(data),
 		Meta:    meta,
 	})
 }
@@ -168,4 +170,26 @@ func InternalServerError(c *fiber.Ctx, message string) error {
 		Error:   errors.ErrCodeInternalError,
 		Message: message,
 	})
+}
+
+func toSnakeCase(input string) string {
+	re := regexp.MustCompile("([a-z0-9])([A-Z])")
+	snake := re.ReplaceAllString(input, "${1}_${2}")
+	return strings.ToLower(snake)
+}
+
+func toSnakeCaseKeys(data interface{}) interface{} {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		normalized := map[string]interface{}{}
+		for key, value := range v {
+			normalized[toSnakeCase(key)] = toSnakeCaseKeys(value)
+		}
+		return normalized
+	case []interface{}:
+		for i, value := range v {
+			v[i] = toSnakeCaseKeys(value)
+		}
+	}
+	return data
 }
