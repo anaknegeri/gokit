@@ -51,8 +51,8 @@ func SuccessWithPagination(c *fiber.Ctx, message string, paginationResult interf
 		// Otherwise, assume it's a custom structure with data and meta fields
 		v := reflect.ValueOf(paginationResult)
 		if v.Kind() == reflect.Struct {
-			dataField := v.FieldByName("Data")
-			metaField := v.FieldByName("Meta")
+			dataField := v.FieldByName("data")
+			metaField := v.FieldByName("meta")
 
 			if dataField.IsValid() {
 				data = dataField.Interface()
