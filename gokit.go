@@ -184,6 +184,11 @@ func SuccessResponse(c *fiber.Ctx, message string, data interface{}, statusCode 
 	return response.Success(c, message, data, statusCode...)
 }
 
+// SuccessWithPagination sends a success response with pagination
+func SuccessWithPagination(c *fiber.Ctx, message string, paginationResult interface{}, statusCode ...int) error {
+	return response.SuccessWithPagination(c, message, paginationResult, statusCode...)
+}
+
 // ErrorResponse sends an error response
 func ErrorResponseWithErr(c *fiber.Ctx, err error) error {
 	return response.Error(c, err)

@@ -2,7 +2,10 @@
 package response
 
 import (
+	"reflect"
+
 	"github.com/anaknegeri/gokit/pkg/errors"
+	"github.com/anaknegeri/gokit/pkg/pagination"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -26,6 +29,58 @@ func Success(c *fiber.Ctx, message string, data interface{}, statusCode ...int) 
 		Code:    code,
 		Message: message,
 		Data:    data,
+	})
+}
+
+// SuccessWithPagination sends a successful paginated response
+func SuccessWithPagination(c *fiber.Ctx, message string, paginationResult interface{}, statusCode ...int) error {
+	code := fiber.StatusOK
+	if len(statusCode) > 0 {
+		code = statusCode[0]
+	}
+
+	// Extract data and metadata from pagination result if it's from our pagination package
+	var data interface{}
+	var meta interface{}
+
+	// Check if it's our PaginationResult type
+	if pr, ok := paginationResult.(pagination.PaginationResult); ok {
+		data = pr.Data
+		meta = pr.Meta
+	} else {
+		// Otherwise, assume it's a custom structure with data and meta fields
+		v := reflect.ValueOf(paginationResult)
+		if v.Kind() == reflect.Struct {
+			dataField := v.FieldByName("Data")
+			metaField := v.FieldByName("Meta")
+
+			if dataField.IsValid() {
+				data = dataField.Interface()
+			} else {
+				data = paginationResult
+			}
+
+			if metaField.IsValid() {
+				meta = metaField.Interface()
+			}
+		} else {
+			// If not a struct, just use as data
+			data = paginationResult
+		}
+	}
+
+	return c.Status(code).JSON(struct {
+		Success bool        `json:"success"`
+		Code    int         `json:"code"`
+		Message string      `json:"message"`
+		Data    interface{} `json:"data"`
+		Meta    interface{} `json:"meta,omitempty"`
+	}{
+		Success: true,
+		Code:    code,
+		Message: message,
+		Data:    data,
+		Meta:    meta,
 	})
 }
 
