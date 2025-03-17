@@ -80,9 +80,9 @@ func (p *Paginator) Paginate(params PaginationParams, result interface{}) (*Pagi
 	}, nil
 }
 
-// GetPaginationFromRequest extracts pagination parameters from a request context
-func GetPaginationFromRequest(c interface {
-	QueryInt(string, int) int
+// GetParams extracts pagination parameters from a request context
+func GetParams(c interface {
+	QueryInt(string, ...int) int
 }) PaginationParams {
 	return PaginationParams{
 		Page:     c.QueryInt("page", 1),

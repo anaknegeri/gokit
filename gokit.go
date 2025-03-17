@@ -102,11 +102,11 @@ func NewPaginator(db *gorm.DB) *pagination.Paginator {
 	return pagination.NewPaginator(db)
 }
 
-// GetPaginationFromRequest extracts pagination parameters from a request
-func GetPaginationFromRequest(c interface {
-	QueryInt(string, int) int
+// GetParams extracts pagination parameters from a request
+func GetParams(c interface {
+	QueryInt(string, ...int) int
 }) pagination.PaginationParams {
-	return pagination.GetPaginationFromRequest(c)
+	return pagination.GetParams(c)
 }
 
 // Validator functions
